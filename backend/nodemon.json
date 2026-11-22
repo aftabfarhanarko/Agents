@@ -2,5 +2,5 @@
   "watch": ["."],
   "ext": "ts,json",
   "ignore": ["dist", "node_modules"],
-  "exec": "tsx app.ts"
+  "exec": "tsx src/server.ts"
 }

@@ -4,4 +4,5 @@ const express_1 = require("express");
 const health_controller_1 = require("../controllers/health.controller");
 const healthRouter = (0, express_1.Router)();
 healthRouter.get('/health', health_controller_1.getHealth);
+healthRouter.get('/health/database', health_controller_1.getDatabaseHealth);
 exports.default = healthRouter;
