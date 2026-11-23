@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User dashboard</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { margin: 0; padding: 32px 20px; background: #f1f5f9; color: #172033; font: 16px Arial, sans-serif; }
+      main { width: min(100%, 900px); margin: 0 auto; }
+      header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+      h1 { margin: 0 0 6px; }
+      p { color: #64748b; }
+      button { padding: 10px 16px; border: 0; border-radius: 8px; background: #2563eb; color: white; font: inherit; cursor: pointer; }
+      .card { padding: 24px; border-radius: 14px; background: white; box-shadow: 0 8px 24px #17203312; }
+      table { width: 100%; border-collapse: collapse; text-align: left; }
+      th, td { padding: 13px 10px; border-bottom: 1px solid #e2e8f0; }
+      th { color: #475569; }
+      #message { color: #b91c1c; }
+      @media (max-width: 560px) { body { padding: 20px 12px; } .card { padding: 14px; overflow-x: auto; } th, td { padding: 10px 6px; } }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div><h1>Dashboard</h1><p id="welcome">Loading account…</p></div>
+        <button id="logout" type="button">Log out</button>
+      </header>
+      <section class="card">
+        <h2>Registered users</h2>
+        <p id="message"></p>
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th></tr></thead>
+          <tbody id="users"></tbody>
+        </table>
+      </section>
+    </main>
+    <script>
+      const user = JSON.parse(sessionStorage.getItem("currentUser") || "null");
+      const apiBase = location.port === "5500"
+        ? `${location.protocol}//${location.hostname}:4000`
+        : "";
+      if (!user) window.location.replace("/");
+      else document.querySelector("#welcome").textContent = `Signed in as ${user.name} (${user.email})`;
+
+      document.querySelector("#logout").addEventListener("click", () => {
+        sessionStorage.removeItem("currentUser");
+        window.location.href = "/";
+      });
+
+      async function loadUsers() {
+        const message = document.querySelector("#message");
+        try {
+          const response = await fetch(`${apiBase}/api/user`);
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.message || "Could not load users.");
+          const body = document.querySelector("#users");
+          body.replaceChildren();
+          for (const item of result.data) {
+            const row = document.createElement("tr");
+            for (const value of [item.id, item.name, item.email]) {
+              const cell = document.createElement("td");
+              cell.textContent = value;
+              row.append(cell);
+            }
+            body.append(row);
+          }
+          if (!result.data.length) message.textContent = "No users found.";
+        } catch (error) {
+          message.textContent = error.message || "Could not connect to the server.";
+        }
+      }
+      if (user) loadUsers();
+    </script>
+  </body>
+</html>

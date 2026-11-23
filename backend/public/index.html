@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User account</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #f1f5f9;
+      color: #172033;
+      font: 16px Arial, sans-serif;
+    }
+
+    main {
+      width: min(100%, 420px);
+      padding: 32px;
+      border-radius: 16px;
+      background: white;
+      box-shadow: 0 12px 36px #17203318;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+    }
+
+    p {
+      color: #64748b;
+    }
+
+    label {
+      display: block;
+      margin: 18px 0 6px;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font: inherit;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 12px;
+      border: 0;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .switch {
+      margin: 20px 0 0;
+      text-align: center;
+    }
+
+    .switch button {
+      width: auto;
+      margin: 0;
+      padding: 0;
+      background: none;
+      color: #2563eb;
+    }
+
+    #message {
+      min-height: 20px;
+      margin: 14px 0 0;
+      color: #b91c1c;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1 id="title">Create account</h1>
+    <p id="description">Register to open your dashboard.</p>
+    <form id="account-form">
+      <div id="name-field">
+        <label for="name">Name</label>
+        <input id="name" name="name" autocomplete="name" required />
+      </div>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" required />
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="new-password" required />
+      <button id="submit" type="submit">Register</button>
+    </form>
+    <p class="switch"><span id="switch-text">Already registered?</span> <button id="switch-mode" type="button">Log
+        in</button></p>
+    <p id="message" role="alert"></p>
+  </main>
+  <script>
+    const form = document.querySelector("#account-form");
+    const nameField = document.querySelector("#name-field");
+    const password = document.querySelector("#password");
+    const message = document.querySelector("#message");
+      const apiBase = location.port === "5500"
+        ? `${location.protocol}//${location.hostname}:4000`
+        : "";
+    let registering = true;
+
+    document.querySelector("#switch-mode").addEventListener("click", () => {
+      registering = !registering;
+      nameField.hidden = !registering;
+      document.querySelector("#name").required = registering;
+      password.autocomplete = registering ? "new-password" : "current-password";
+      document.querySelector("#title").textContent = registering ? "Create account" : "Welcome back";
+      document.querySelector("#description").textContent = registering ? "Register to open your dashboard." : "Log in to continue to your dashboard.";
+      document.querySelector("#submit").textContent = registering ? "Register" : "Log in";
+      document.querySelector("#switch-text").textContent = registering ? "Already registered?" : "Need an account?";
+      document.querySelector("#switch-mode").textContent = registering ? "Log in" : "Register";
+      message.textContent = "";
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      message.textContent = "";
+      const data = Object.fromEntries(new FormData(form));
+        const endpoint = registering ? "/api/register" : "/api/login";
+      try {
+          const response = await fetch(`${apiBase}${endpoint}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || "Request failed.");
+        sessionStorage.setItem("currentUser", JSON.stringify(result.data));
+        window.location.href = "/dashboard.html";
+      } catch (error) {
+        message.textContent = error.message || "Could not connect to the server.";
+      }
+    });
+  </script>
+</body>
+
+</html>
